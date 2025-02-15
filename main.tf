@@ -7,6 +7,10 @@ resource "aws_rds_cluster" "cluster" {
   master_username    = var.db_users["admin"]
   master_password    = random_password.passwords["admin"].result
   storage_encrypted  = true #We don't speciy key for now
+  #final_snapshot_identifier is required when skip_final_snapshot is false
+  final_snapshot_identifier = local.final_snapshot_identifier
+  skip_final_snapshot       = local.skip_final_snapshot
+  backup_retention_period   = local.backup_retention_period
 
   tags = local.tags
 

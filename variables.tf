@@ -28,7 +28,12 @@ variable "engine_type" {
 
   validation {
     condition     = contains(["mysql", "pg"], var.engine_type)
-    error_message = "The type of environment needs to be either dev or prod"
+    error_message = "The engine type needs to be either mysql or pg"
+  }
+
+  validation {
+    condition     = contains(["pg"], var.engine_type)
+    error_message = "We don't support MySQL yet"
   }
 }
 
@@ -58,13 +63,18 @@ variable "subnet_ids" {
 }
 
 variable "db_name" {
-  type = string
+  type        = string
+  description = "The database name"
+  validation {
+    condition     = length(var.db_name) > 0
+    error_message = "The database name cannot be empty"
+  }
 }
 
 
 variable "db_users" {
   type        = map(string)
-  description = "A map with the name of three users that will be created in the database (admin, ro, rw)"
+  description = "A map with the name of three users that will be created in the database (admin, ro, rw). RW does not have DDL permissions"
 
   validation {
     condition     = alltrue([for k, v in var.db_users : contains(["admin", "ro", "rw"], k) && !strcontains(v, " ")])

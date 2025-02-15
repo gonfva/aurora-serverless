@@ -13,8 +13,8 @@ output "ro_endpoint" {
   description = "The URL for the read endpoint in the cluster"
 }
 
-output "keys" {
-  value       = random_password.passwords
+output "passwords" {
+  value       = { for k, v in random_password.passwords : k => v.result }
   sensitive   = true
   description = "A map with the keys (we should use secret manager or SSM parameter store instead)"
 }
