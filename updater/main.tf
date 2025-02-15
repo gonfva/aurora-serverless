@@ -1,33 +1,9 @@
-resource "null_resource" "create_users" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = <<EOT
-      aws lambda invoke \
-        --function-name ${aws_lambda_function.db_user_creation.function_name} \
-        --payload '{"users": [
-          {"username": "${var.db_users.ro}", "password": "${var.db_passwords.ro}", permissions :"SELECT"},
-          {"username": "${var.db_users.rw}", "password": "${var.db_passwords.rw}", permissions :"SELECT, INSERT, UPDATE, DELETE"}
-        ]}' \
-        response.json
-    EOT
-  }
-
-  depends_on = [
-    aws_lambda_function.db_user_creation,
-  ]
-}
-
-
-
 resource "aws_lambda_function" "db_user_creation" {
-  filename      = "db_user_management.zip"
+  filename      = data.archive_file.function_zip.output_path
   function_name = "db_user_creation-${var.slug}"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "index.handler"
-  runtime       = "python3.9"
+  handler       = "lambda.handler"
+  runtime       = "python3.12"
   timeout       = 300
 
   vpc_config {
@@ -54,11 +30,20 @@ resource "aws_security_group" "lambda_sg" {
   tags = var.tags
 }
 
-resource "aws_security_group_rule" "db_lambda_sg" {
+resource "aws_security_group_rule" "db_in_lambda_sg" {
   type                     = "ingress"
   from_port                = var.port
   to_port                  = var.port
   protocol                 = "tcp"
   security_group_id        = var.db_sg
   source_security_group_id = aws_security_group.lambda_sg.id
+}
+
+resource "aws_security_group_rule" "db_lambda_sg" {
+  type                     = "egress"
+  from_port                = var.port
+  to_port                  = var.port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.lambda_sg.id
+  source_security_group_id = var.db_sg
 }

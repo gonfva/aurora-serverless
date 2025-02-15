@@ -11,4 +11,10 @@ locals {
   skip_final_snapshot       = var.environment_type == "prod" ? false : true
   backup_retention_period   = var.environment_type == "prod" ? 7 : 0
   port                      = var.engine_type == "pg" ? 5432 : 3306
+  db_passwords              = { for k, v in random_password.passwords : k => v.result }
+  region                    = data.aws_region.current.name
+  package_path              = "${path.root}/tmp/deployment"
+  results_path              = "${path.root}/tmp/results.json"
 }
+
+data "aws_region" "current" {}

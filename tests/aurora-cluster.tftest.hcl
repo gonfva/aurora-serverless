@@ -32,4 +32,9 @@ run "create_cluster" {
     error_message = "Invalid name"
   }
 
+  assert {
+    condition     = jsondecode(data.local_file.results.content).body == "Users created successfully"
+    error_message = "Error "
+  }
+
 }

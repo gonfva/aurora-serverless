@@ -37,3 +37,7 @@ variable "slug" {
 variable "port" {
   type = number
 }
+
+variable "package_path" {
+  type = string
+}
